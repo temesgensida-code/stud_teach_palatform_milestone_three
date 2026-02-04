@@ -9,8 +9,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>WebRTC Audio Chat</h1>
-        <p>Open this page in two tabs to start a conversation.</p>
+        <h1>webRTC milestone</h1>
       </header>
 
       <main style={{ display: 'flex', justifyContent: 'center', marginTop: '50px' }}>
