@@ -56,30 +56,29 @@ export const useWebRTC = (roomId) => {
   useEffect(() => {
     socket.emit('join-room', roomId);
 
-    socket.on('signal', async ({ signal }) => {
+socket.on('signal', async ({ sender, signal }) => {
   try {
     if (signal.type === 'offer') {
-      await initConnection();
-      
-      // Only set offer if we are not already busy
-      if (pc.current.signalingState !== "stable") {
-        console.log("Signaling state busy, ignoring duplicate offer");
+      // If we are already in the middle of a connection, ignore new offers
+      if (pc.current && pc.current.signalingState !== 'stable') {
+        console.log("State is busy, skipping duplicate offer.");
         return;
       }
 
+      await initConnection();
       await pc.current.setRemoteDescription(new RTCSessionDescription(signal));
       const answer = await pc.current.createAnswer();
       await pc.current.setLocalDescription(answer);
+      
       socket.emit('signal', { roomId, signal: answer });
 
     } else if (signal.type === 'answer') {
-      // FIX: Check if we are actually expecting an answer
-      if (pc.current.signalingState === "have-local-offer") {
+      // Only set remote description if we actually sent an offer first
+      if (pc.current.signalingState === 'have-local-offer') {
         await pc.current.setRemoteDescription(new RTCSessionDescription(signal));
       }
-
     } else if (signal.candidate) {
-      // FIX: Only add ICE candidates if we have a remote description set
+      // Only add ICE candidates if we have a remote description
       if (pc.current.remoteDescription) {
         await pc.current.addIceCandidate(new RTCIceCandidate(signal));
       }
